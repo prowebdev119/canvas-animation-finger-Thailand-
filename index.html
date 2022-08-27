@@ -1,0 +1,188 @@
+<html>
+<head>
+	<style type="text/css">
+		body{
+			background: #dde9f0;
+		}
+		.header{
+			background-color: #222;   
+			margin-bottom: 10px;
+			color: white;
+			padding: 16px;
+			font-size: 20px;
+			font-family: sans-serif;
+		}
+		.parameters{
+			height: 830px;
+			padding: 15px 20px 20px 20px;
+			background: #2c393e;
+			width: 350px;
+			float: left;
+		}
+		.parameters-title{
+			font-family: sans-serif;
+			color: #22A7F0;
+			font-size: 1.4em;
+			font-weight: 700;
+			margin-top: 5px;
+			margin-bottom: 20px;
+		}
+		.output{
+			left: 410px;
+			position: absolute;
+		}
+		canvas{
+			border: grey 1px solid;
+			background: white;			
+		}
+		input[type=text], select {
+			width: 100%;
+			padding: 11px 20px;
+			margin: 7px 0;
+			display: inline-block;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			box-sizing: border-box;
+			margin-bottom: 15px;	
+		}
+
+		input[type=button] {
+			width: 100%;
+			background-color: #4CAF50;
+			color: white;
+			padding: 11px 20px;
+			margin: 7px 0;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 18px;
+		}
+
+		input[type=button]:hover {
+			background-color: #45a049;
+		}
+		label{
+			font-family: sans-serif;
+			color: white;
+		}
+	</style>
+</head>
+<body>
+	<div class="header">Hand Counting Animation</div>
+	<div class="content">
+		<div class="parameters">
+			<h4 class="parameters-title">Parameters</h4>
+			<form action="/action_page.php">
+				<label for="hand1">Hand 1</label>
+				<div>
+					<input type="text" min="1" max="5" value="5" id="hand1">
+				</div>
+
+				<label for="hand2">Hand 2</label>
+				<div>
+					<input type="text" min="1" max="5" value="2" id="hand2">
+				</div>
+
+				<input type="button" onclick="init()" value="Animate">
+			</form>
+		</div>
+		<div class="output">
+			<canvas id="myCanvas"></canvas>
+			
+		</div>
+	</div>
+	<script type="text/javascript">
+		var canvasWidth=600;
+		var canvasHeight=400;
+		var delay=300;
+
+		var canvas = document.getElementById("myCanvas");
+		const ctx = canvas.getContext('2d');	
+		canvas.width = canvasWidth;
+		canvas.height = canvasHeight;
+		var loaded=0;
+
+		var audioarr=[];
+		for(var i=1;i<=10;i++){
+			var audio=new Audio("audio/"+i+".mp3"); 
+			audio.addEventListener('canplaythrough', function() { loaded++;}, false); 
+			audioarr.push(audio);		 
+		}
+
+		var imgarr=[];		
+
+		var img;
+		for(var j=1;j<=4;j++){
+			img=document.createElement('img'); img.src='img/tone'+j+'/0.png'; img.onload = function () { loaded++;}; imgarr.push(img);		
+			for(var i=1;i<=5;i++){
+				img=document.createElement('img'); img.src='img/tone'+j+'/'+i+'-1.png'; img.onload = function () { loaded++;}; imgarr.push(img);
+				img=document.createElement('img'); img.src='img/tone'+j+'/'+i+'-2.png'; img.onload = function () { loaded++;}; imgarr.push(img);			
+			}
+		}
+		function init(){			
+			var hand1=document.getElementById("hand1").value;
+			var hand2=document.getElementById("hand2").value;
+			AddWithFingers(hand1,hand2,true);	
+		}
+		function AddWithFingers(hand1,hand2,audio){	
+			if(loaded<54){
+				alert("Images and audio not yet loaded!");
+				return;
+			}
+			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+			ctx.font = "56px Arial";
+			ctx.fillText(hand1+"    +    "+hand2+"   =   "+(Number(hand1)+Number(hand2)), 102, 80);
+
+			var tone=Math.floor(Math.random() * 4); 
+			var i=0;
+			var audioindex=0;
+			var interval1=setInterval(function(){ 
+				ctx.clearRect(0, 100, canvasWidth, canvasHeight);
+				ctx.drawImage(imgarr[tone*11+i],5,120,220,220);
+				i++;
+				if(i%2==0){
+					audioarr[audioindex].playbackRate = 0.7;
+					audioarr[audioindex].play();
+					audioindex=audioindex+1;
+					delay=3500;
+				}
+				else
+				{
+					delay=300;
+				}
+				if(i>=hand1*2+1){
+					clearInterval(interval1);
+					i=0;
+					ctx.translate(canvasWidth, 0);
+					ctx.scale(-1, 1);
+					var interval2=setInterval(function(){ 
+						ctx.clearRect(0, 100, canvasWidth/2+50, canvasHeight);
+						ctx.drawImage(imgarr[tone*11+i],180,120,220,220);
+						i++;
+						if(i%2==0){
+							audioarr[audioindex].playbackRate = 0.7;
+							audioarr[audioindex].play();
+							audioindex=audioindex+1;
+							delay=3500;
+						}
+						else
+						{
+							delay=300;
+						}
+						if(i>=hand2*2+1){
+							clearInterval(interval2);
+							ctx.translate(canvasWidth, 0);
+							ctx.scale(-1, 1);
+						}
+					}, delay);
+				}
+			}, delay);
+
+		}
+
+		
+		
+		
+	</script>
+</body>
+</html>
